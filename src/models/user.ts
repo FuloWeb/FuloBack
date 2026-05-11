@@ -6,6 +6,11 @@ export type CreateUserData = {
   password: string;
 };
 
+export enum Role {
+  CLIENTE = "cliente",
+  ADMIN = "admin",
+}
+
 export type UpdateUserData = Partial<CreateUserData>;
 
 export const UserModel = {

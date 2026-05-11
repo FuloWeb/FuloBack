@@ -9,16 +9,17 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String?
-  email     String   @unique
-  password  String
-  role      Role     @default(CLIENTE)
+  id       Int     @id @default(autoincrement())
+  name     String?
+  email    String  @unique
+  password String
+  address  String
+  role     Role    @default(CLIENTE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders    Order[]
+  orders Order[]
 }
 
 enum Role {
@@ -26,16 +27,27 @@ enum Role {
   ADMIN
 }
 
-// Extras 
 model Product {
   id          Int      @id @default(autoincrement())
   name        String
   description String?
   price       Float
-  stock       Int
+  quantity    Int
+  photo       Photo?   @relation(fields: [photoId], references: [id])
+  color       String
   createdAt   DateTime @default(now())
 
-  orderItems  OrderItem[]
+  orderItems OrderItem[]
+  photoId    Int?
+}
+
+model Photo {
+  id        Int       @id @default(autoincrement())
+  blob      Bytes
+  filename  String
+  mimetype  String // e.g., 'image/jpeg'
+  createdAt DateTime  @default(now())
+  products  Product[]
 }
 
 model Order {
@@ -43,16 +55,16 @@ model Order {
   userId    Int
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
-  items     OrderItem[]
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   orderId   Int
   productId Int
   quantity  Int
 
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 }

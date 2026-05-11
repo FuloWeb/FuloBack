@@ -25,6 +25,7 @@ dist-ssr
 
 # Prisma client generated files
 src/generated
+src/database/migrations
 
 # Environment 
 .env

@@ -1,15 +1,13 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.js";
+import { UserModel } from "../models/user.js";
 
-const generateToken = (user: User) => {
+export const generateToken = (user: UserModel): String => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("JWT_SECRET não definido nas variáveis de ambiente.");
   }
 
-  const { id, role } = user.safeData;
-
-  return jwt.sign({ id, role }, secret, { expiresIn: "2h" });
+  return jwt.sign({ id: user.id, email: user.email, role: user.role }, secret, {
+    expiresIn: "2h",
+  });
 };
-
-export default generateToken;

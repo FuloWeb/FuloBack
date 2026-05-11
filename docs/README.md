@@ -14,7 +14,8 @@ Server-side da aplicação, usando Typescript primariamente, junto ao PrismaORM.
 4. Adicione o `.env` na raiz do projeto e adicione as variáveis de ambiente
     - Tem um .env.example com as possíveis variáveis e como podem ser passados os valores.
 5. Gerar um prisma client com `npx prisma generate`
-5. Pode verificar a lista de scripts disponíveis, mas para iniciar o projeto em modo `development`, use `npm run start`.
+6. Gerar uma versão da aplicação com `npm run build` (still need update to this step be removed)
+7. Pode verificar a lista de scripts disponíveis, mas para iniciar o projeto em modo `development`, use `npm run start`.
 
 # LIBS
 
