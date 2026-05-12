@@ -1,4 +1,6 @@
-import { createLogger, format, transports } from "winston";
+import { createLogger, format, transports, Logger } from "winston";
+import { addColors } from "winston/lib/winston/config/index.js";
+import { customLevels } from "./custom_log_level.js";
 const { combine, timestamp, printf, colorize, errors, json } = format;
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -15,39 +17,41 @@ function redactKeys(obj: Record<string, unknown>): Record<string, unknown> {
   );
 }
 
+addColors(customLevels.colors);
+
 const sanitizeData = format((info) => {
   if (typeof info.message === "string") {
     info.message = info.message.replace(/[\r\n\x1b]/g, " ");
   }
-
   if (info.message && typeof info.message === "object") {
     info.message = redactKeys(info.message as Record<string, unknown>);
   }
-
   const { level, message, timestamp, stack, ...meta } = info;
   if (Object.keys(meta).length) {
-    const redacted = redactKeys(meta);
-    Object.assign(info, redacted);
+    Object.assign(info, redactKeys(meta));
   }
-
   return info;
 });
 
-const logFormat = printf(({ level, message, timestamp, stack }) => {
-  return `${timestamp} [${level}]: ${stack || message}`;
+const prettyFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
+  const metaStr = Object.keys(meta).length
+    ? "\n" + JSON.stringify(meta, null, 2)
+    : "";
+  return `${timestamp} [${level}]: ${stack || message}${metaStr}`;
 });
 
-export const logger = createLogger({
+export const logger: Logger = createLogger({
+  levels: customLevels.levels,
   level: isDev ? "debug" : "info",
   format: combine(
-    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    timestamp({ format: process.env.LOG_TIMESTAMP_FORMAT || "YYYY-MM-DD HH:mm:ss" }),
     errors({ stack: isDev }),
     sanitizeData(),
-    isDev
-      ? combine(logFormat, colorize({ all: true }))
+    true
+      ? combine(prettyFormat, colorize({ all: true }))
       : json()
   ),
-  transports: [
+    transports: [
     new transports.Console(),
     new transports.File({
       filename: "logs/error.log",

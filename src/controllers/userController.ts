@@ -4,6 +4,7 @@ import { UserModel } from "../models/user.js";
 import { AppError } from "../utils/appError.js";
 import { logger } from "../config/logger.js";
 import bcrypt from "bcrypt";
+import { debug } from "node:console";
 
 const idSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -13,6 +14,7 @@ const userSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(8),
+  address: z.string().min(8),
 });
 
 export const UserController = {

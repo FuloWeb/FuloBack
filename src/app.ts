@@ -1,9 +1,6 @@
 import express from "express";
-import dotenv from "dotenv";
 import { logger } from "./config/logger.js";
 import router from "./routes/router.js";
-
-dotenv.config();
 
 export const app = express();
 const PORT = process.env.PORT || 3000;
