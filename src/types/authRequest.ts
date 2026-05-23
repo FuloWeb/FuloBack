@@ -1,11 +1,14 @@
 import { Request } from "express";
-import { z } from "zod";
-import { jwtPayloadSchema } from "../middleware/authMiddleware.js";
+import { Role } from "../generated/prisma/index.js";
 
-export type JwtUser = z.infer<typeof jwtPayloadSchema>;
+export interface SessionUser {
+  id: number;
+  email: string;
+  role: Role;
+}
 
 export interface AuthRequest extends Request {
-  user?: JwtUser;
+  user?: SessionUser;
 }
 
 export type RegisterBody = {

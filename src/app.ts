@@ -1,13 +1,35 @@
 import express from "express";
 import { logger } from "./config/logger.js";
 import router from "./routes/router.js";
+import session from "express-session";
 
 export const app = express();
 const PORT = process.env.PORT || 3000;
+const sessionSecret = process.env.SESSION_SECRET;
 
 app.use(express.json());
 
-app.use(router)
+if (!sessionSecret) {
+  throw new Error(
+    "SESSION_SECRET não definido",
+  );
+}
+
+app.use(
+  session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 2,
+    },
+  }),
+);
+app.use(router);
 
 app.get("/", (req, res) => {
   return res.json({ message: `Servidor rodando na porta ${PORT}` });

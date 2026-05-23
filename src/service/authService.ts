@@ -1,22 +1,26 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-
 import { prisma } from "../database/prisma.js";
 import { UserModel } from "../models/user.js";
 import { RegisterBody, LoginBody } from "../types/authRequest.js";
+
 import { logger } from "../config/logger.js";
 
 // MARK: - Registrar
 export async function registrarUsuario(
   req: Request<{}, {}, RegisterBody>,
   res: Response,
-) {
+): Promise<Response> {
   try {
     const { name, email, password, address } = req.body;
 
+    logger.http("POST /auth/register", {
+      email,
+    });
+
     if (!name || !email || !password || !address) {
-      logger.warn("POST /auth/register", { name, email, password, address });
+      logger.warn("POST /auth/register - Campos obrigatórios faltando");
 
       return res.status(400).json({
         error: "Campos obrigatórios faltando",
@@ -40,7 +44,12 @@ export async function registrarUsuario(
       password: senhaHash,
       address,
     });
-    logger.info("POST /auth/register", { name, email, password, address });
+
+    logger.success("POST /auth/register", {
+      userId: novoUsuario.id,
+      email: novoUsuario.email,
+    });
+
     return res.status(201).json({
       success: true,
       user: {
@@ -60,61 +69,80 @@ export async function registrarUsuario(
 }
 
 // MARK: - Autenticar
-export const autenticarUsuario = async (
+export async function autenticarUsuario(
   req: Request<{}, {}, LoginBody>,
   res: Response,
-): Promise<Response> => {
+): Promise<Response> {
   try {
-    logger.http("POST /auth/login");
     const { email, password } = req.body;
+
+    logger.http("POST /auth/login", {
+      email,
+    });
 
     const usuario = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!usuario) {
-      logger.error("POST /auth/login", { usuario });
+      logger.warn(
+        "POST /auth/login - Usuário não encontrado",
+        { email },
+      );
+
       return res.status(404).json({
         error: "Usuário não encontrado.",
       });
     }
 
-    const senhaValida = await bcrypt.compare(password, usuario.password);
+    const senhaValida = await bcrypt.compare(
+      password,
+      usuario.password,
+    );
 
     if (!senhaValida) {
-      logger.warn("POST /auth/login", { senhaValida });
+      logger.warn(
+        "POST /auth/login - Senha inválida",
+        {
+          userId: usuario.id,
+          email,
+        },
+      );
+
       return res.status(401).json({
         error: "Senha incorreta.",
       });
     }
 
-    const token = jwt.sign(
-      {
-        id: usuario.id,
-        name: usuario.name,
-        role: usuario.role,
-      },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: "2h",
-      },
-    );
-    logger.success("POST /auth/login", { email });
+    req.session.user = {
+      id: usuario.id,
+      email: usuario.email,
+      role: usuario.role,
+    };
+
+    logger.success("POST /auth/login", {
+      userId: usuario.id,
+      email,
+      sessionId: req.sessionID,
+    });
 
     return res.status(200).json({
-      token,
-      role: usuario.role,
+      success: true,
+
       user: {
         id: usuario.id,
         name: usuario.name,
         email: usuario.email,
+        role: usuario.role,
       },
     });
   } catch (error) {
-    logger.error("POST /auth/login", { error });
+    logger.error("POST /auth/login", {
+      error,
+    });
 
     return res.status(500).json({
       error: "Erro interno no servidor.",
     });
   }
-};
+}
