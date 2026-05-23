@@ -1,4 +1,5 @@
 import { prisma } from "../database/prisma.js";
+import { Role } from "../generated/prisma/index.js";
 
 export type CreateUserData = {
   name: string;
@@ -6,11 +7,6 @@ export type CreateUserData = {
   password: string;
   address: string;
 };
-
-export enum Role {
-  CLIENTE = "cliente",
-  ADMIN = "admin",
-}
 
 export type UpdateUserData = Partial<CreateUserData>;
 
@@ -33,7 +29,10 @@ export const UserModel = {
 
   async create(data: CreateUserData) {
     return prisma.user.create({
-      data,
+      data: {
+        ...data,
+        role: Role.CLIENTE,
+      },
     });
   },
 

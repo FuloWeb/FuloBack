@@ -1,5 +1,4 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { z } from "zod";
 import { UserController } from "../controllers/userController.js";
 
 const userRouter: Router = Router();

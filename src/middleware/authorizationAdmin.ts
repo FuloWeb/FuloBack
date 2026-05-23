@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/authRequest.js";
 import { logger } from "../config/logger.js";
-import { Role } from "../models/user.js";
+import { Role } from "../generated/prisma/index.js";
 
 export const authorizationAdmin = (
   req: AuthRequest,

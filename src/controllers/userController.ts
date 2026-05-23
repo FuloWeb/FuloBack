@@ -19,7 +19,7 @@ const userSchema = z.object({
 
 export const UserController = {
   async list(req: Request, res: Response) {
-    logger.info("GET /users");
+    logger.http("GET /users");
     const users = await UserModel.findAll();
     return res.status(200).json({
       data: users,
@@ -29,7 +29,7 @@ export const UserController = {
 
   async getById(req: Request, res: Response) {
     const { id } = idSchema.parse(req.params);
-    logger.info("GET /users/:id", { id });
+    logger.http("GET /users/:id", { id });
 
     const user = await UserModel.findById(id);
     if (!user) throw new AppError("Usuário não encontrado", 404);
@@ -39,7 +39,6 @@ export const UserController = {
 
   async create(req: Request, res: Response) {
     const data = userSchema.parse(req.body);
-    logger.info("POST /users", { email: data.email });
 
     const existing = await UserModel.findByEmail(data.email);
     if (existing) throw new AppError("E-mail já cadastrado", 409);
@@ -47,13 +46,14 @@ export const UserController = {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await UserModel.create({ ...data, password: hashedPassword });
 
+    logger.success("POST /users", { email: data.email });
     return res.status(201).json({ data: user });
   },
 
   async update(req: Request, res: Response) {
     const { id } = idSchema.parse(req.params);
     const data = userSchema.partial().parse(req.body);
-    logger.info("PUT /users/:id", { id });
+    logger.http("PUT /users/:id", { id });
 
     const existing = await UserModel.findById(id);
     if (!existing) throw new AppError("Usuário não encontrado", 404);
