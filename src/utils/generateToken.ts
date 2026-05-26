@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
-import { UserModel } from "../models/user.js";
+import { User } from "../generated/prisma/index.js";
 
-export const generateToken = (user: UserModel): String => {
+// Geração de token pra uso de JWT TOKEN - atual não usado
+export const generateToken = (user: User): String => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("JWT_SECRET não definido nas variáveis de ambiente.");

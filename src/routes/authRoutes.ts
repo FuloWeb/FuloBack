@@ -18,5 +18,6 @@ const asyncHandler =
 
 authRouter.post("/register", asyncHandler(auth.registrarUsuario));
 authRouter.post("/login", asyncHandler(auth.autenticarUsuario));
+authRouter.post("/logout", asyncHandler(auth.encerrarSessao));
 
 export default authRouter;

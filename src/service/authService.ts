@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { prisma } from "../database/prisma.js";
 import { UserModel } from "../models/user.js";
 import { RegisterBody, LoginBody } from "../types/authRequest.js";
 
@@ -30,7 +28,9 @@ export async function registrarUsuario(
     const usuarioExistente = await UserModel.findByEmail(email);
 
     if (usuarioExistente) {
-      logger.warn("POST /auth/register", { usuarioExistente });
+      logger.warn("POST /auth/register - Email já cadastrado", {
+        email,
+      });
       return res.status(409).json({
         error: "E-mail já cadastrado",
       });
@@ -74,24 +74,22 @@ export async function autenticarUsuario(
   res: Response,
 ): Promise<Response> {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email.trim().toLowerCase();
+    const { password } = req.body;
 
     logger.http("POST /auth/login", {
       email,
     });
 
-    const usuario = await prisma.user.findUnique({
-      where: { email },
-    });
+    const usuario = await UserModel.findByEmail(email);
 
     if (!usuario) {
-      logger.warn(
-        "POST /auth/login - Usuário não encontrado",
-        { email },
-      );
+      logger.warn("POST /auth/login - Credenciais inválidas", {
+        email,
+      });
 
-      return res.status(404).json({
-        error: "Usuário não encontrado.",
+      return res.status(401).json({
+        error: "Email ou senha inválidos.",
       });
     }
 
@@ -101,40 +99,59 @@ export async function autenticarUsuario(
     );
 
     if (!senhaValida) {
-      logger.warn(
-        "POST /auth/login - Senha inválida",
-        {
-          userId: usuario.id,
-          email,
-        },
-      );
+      logger.warn("POST /auth/login - Credenciais inválidas", {
+        userId: usuario.id,
+        email,
+      });
 
       return res.status(401).json({
-        error: "Senha incorreta.",
+        error: "Email ou senha inválidos.",
       });
     }
 
-    req.session.user = {
-      id: usuario.id,
-      email: usuario.email,
-      role: usuario.role,
-    };
+    return await new Promise<Response>((resolve) => {
+      req.session.regenerate((err) => {
+        if (err) {
+          logger.error(
+            "POST /auth/login - Erro ao regenerar sessão",
+            {
+              error: err,
+              email,
+            },
+          );
 
-    logger.success("POST /auth/login", {
-      userId: usuario.id,
-      email,
-      sessionId: req.sessionID,
-    });
+          return resolve(
+            res.status(500).json({
+              error: "Erro ao iniciar sessão.",
+            }),
+          );
+        }
 
-    return res.status(200).json({
-      success: true,
+        req.session.user = {
+          id: usuario.id,
+          email: usuario.email,
+          role: usuario.role,
+        };
 
-      user: {
-        id: usuario.id,
-        name: usuario.name,
-        email: usuario.email,
-        role: usuario.role,
-      },
+        logger.success("POST /auth/login", {
+          userId: usuario.id,
+          email,
+          sessionId: req.sessionID,
+        });
+
+        resolve(
+          res.status(200).json({
+            success: true,
+
+            user: {
+              id: usuario.id,
+              name: usuario.name,
+              email: usuario.email,
+              role: usuario.role,
+            },
+          }),
+        );
+      });
     });
   } catch (error) {
     logger.error("POST /auth/login", {
@@ -145,4 +162,24 @@ export async function autenticarUsuario(
       error: "Erro interno no servidor.",
     });
   }
+}
+
+// MARK: - Encerrar sessao
+export async function encerrarSessao(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({
+        erro: "Não foi possível encerrar a sessão",
+      });
+    }
+
+    res.clearCookie("connect.sid");
+
+    return res.status(200).json({
+      mensagem: "Sessão encerrada com sucesso",
+    });
+  });
 }
