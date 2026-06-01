@@ -37,8 +37,18 @@ model Product {
   color       String
   createdAt   DateTime @default(now())
 
+  categoryId      Int
+  productCategory ProductCategory @relation(fields: [categoryId], references: [id])
+
   orderItems OrderItem[]
   photoId    Int?
+}
+
+model ProductCategory {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  products Product[]
 }
 
 model Photo {

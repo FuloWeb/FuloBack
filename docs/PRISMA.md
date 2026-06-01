@@ -24,3 +24,8 @@ npx prisma generate
 npx prisma migrate dev
 
 Isso deve atualizar as tabelas com base no schema.prisma para o banco real, sem valores.
+
+## Para pequenas atualizações
+- Sem alterar os valores que já foram adicionados em outras tabelas
+
+npx prisma migrate dev --name nome_alteracao

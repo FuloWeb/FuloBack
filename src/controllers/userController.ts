@@ -4,10 +4,13 @@ import { UserModel } from "../models/user.js";
 import { AppError } from "../utils/appError.js";
 import { logger } from "../config/logger.js";
 import bcrypt from "bcrypt";
-import { debug } from "node:console";
 
 const idSchema = z.object({
   id: z.coerce.number().int().positive(),
+});
+
+const emailSchema = z.object({
+  email: z.coerce.string().email(),
 });
 
 const userSchema = z.object({
@@ -35,6 +38,17 @@ export const UserController = {
     if (!user) throw new AppError("Usuário não encontrado", 404);
 
     return res.status(200).json({ data: user });
+  },
+
+  async getByEmail(req: Request, res: Response){
+    const {email} = emailSchema.parse(req.params);
+
+    logger.http("GET /users/:email", {email})
+
+    const user = await UserModel.findByEmail(email);
+    if (!user) throw new AppError("Usuário com esse email não encontrado", 404);
+
+    return res.status(200).json({data: user})
   },
 
   async create(req: Request, res: Response) {
