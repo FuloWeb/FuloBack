@@ -8,7 +8,7 @@
 
     "target": "esnext",
     "lib": ["esnext"],
-    "types": ["node"],
+    "types": ["node", "express", "multer"],
 
     "sourceMap": true,
 

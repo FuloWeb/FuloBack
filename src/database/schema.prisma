@@ -33,15 +33,16 @@ model Product {
   description String?
   price       Float
   quantity    Int
-  photo       Photo?   @relation(fields: [photoId], references: [id])
   color       String
   createdAt   DateTime @default(now())
 
   categoryId      Int
   productCategory ProductCategory @relation(fields: [categoryId], references: [id])
 
+  photoId Int?   @unique
+  photo   Photo? @relation(fields: [photoId], references: [id])
+
   orderItems OrderItem[]
-  photoId    Int?
 }
 
 model ProductCategory {
@@ -52,12 +53,22 @@ model ProductCategory {
 }
 
 model Photo {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   blob      Bytes
   filename  String
   mimetype  String // e.g., 'image/jpeg'
-  createdAt DateTime  @default(now())
-  products  Product[]
+  createdAt DateTime @default(now())
+
+  product Product?
+}
+
+enum OrderStatus {
+  AGUARDANDO_PAGAMENTO
+  PAGAMENTO_APROVADO
+  EM_PROCESSAMENTO
+  ENVIADO
+  ENTREGUE
+  CANCELADO
 }
 
 model Order {
@@ -66,6 +77,7 @@ model Order {
   createdAt DateTime @default(now())
 
   user  User        @relation(fields: [userId], references: [id])
+  status   OrderStatus  @default(AGUARDANDO_PAGAMENTO)
   items OrderItem[]
 }
 

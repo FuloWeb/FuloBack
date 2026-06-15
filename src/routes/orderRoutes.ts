@@ -5,8 +5,7 @@ const orderRouter: Router = Router();
 const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
 
 orderRouter.get("/", asyncHandler(OrderController.list));
-orderRouter.get("/:id", asyncHandler(OrderController.getById));
-orderRouter.get("/:email", asyncHandler(OrderController.getByEmail));
+orderRouter.get("/:id", asyncHandler(OrderController.getDetailsById));
 orderRouter.post("/", asyncHandler(OrderController.create));
 orderRouter.put("/:id", asyncHandler(OrderController.update));
 orderRouter.delete("/:id", asyncHandler(OrderController.remove));
