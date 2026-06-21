@@ -89,4 +89,82 @@ export const OrderModel = {
       where: { id },
     });
   },
+
+  // para exportacao de pdf
+  async salesByClient(startDate: Date, endDate: Date) {
+    const orders = await prisma.order.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+
+      include: {
+        user: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    const totals = new Map<string, number>();
+
+    for (const order of orders) {
+      const clientName = order.user.name ?? order.user.email;
+
+      let orderTotal = 0;
+
+      for (const item of order.items) {
+        orderTotal += item.quantity * item.product.price;
+      }
+
+      totals.set(clientName, (totals.get(clientName) ?? 0) + orderTotal);
+    }
+
+    return Array.from(totals.entries()).map(([clientName, total]) => ({
+      clientName,
+      total,
+    }));
+  },
+
+  async dailyRevenue(startDate: Date, endDate: Date) {
+    const orders = await prisma.order.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    const revenue = new Map<string, number>();
+
+    for (const order of orders) {
+      const date = order.createdAt.toISOString().split("T")[0];
+
+      let total = 0;
+
+      for (const item of order.items) {
+        total += item.quantity * item.product.price;
+      }
+
+      revenue.set(date, (revenue.get(date) ?? 0) + total);
+    }
+
+    return Array.from(revenue.entries()).map(([date, total]) => ({
+      date,
+      total,
+    }));
+  },
 };

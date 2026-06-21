@@ -19,6 +19,18 @@ export type UpdateProductData = Partial<{
 }>;
 
 export const ProductModel = {
+  async findOutOfStock() {
+    return prisma.product.findMany({
+      where: {
+        quantity: 0,
+      },
+
+      include: {
+        productCategory: true,
+      },
+    });
+  },
+
   async findAll() {
     return prisma.product.findMany({
       include: {
