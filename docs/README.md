@@ -37,8 +37,11 @@ zod
 Winston
 - Sistema de logging mais complexo para depuração e debug.
 
-jsonwebtoken
-- Handle signing, verifying, and decoding tokens to secure API routes
+Multer
+- Upload de imagens para servidor, usado aqui diretamente no banco de dados.
+
+PDFKit
+- Usado pra montagem e exportação de PDFs do lado do servidor
 
 # Structure
 
@@ -62,6 +65,7 @@ src
  ┣ routes
  ┃ ┣ router.ts # Rotas da aplicação
  ┃ ┗ userRoutes.ts
+ ┣ service # servicos da aplicacao, como autenticacao e exportacao de pdfs
  ┣ types
  ┃ ┗ authRequest.ts # Tipos específicos para requests, ex: Autenticação
  ┣ utils
