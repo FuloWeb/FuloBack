@@ -56,6 +56,7 @@ src
  ┣ middleware
  ┃ ┣ authMiddleware.ts
  ┃ ┗ authorizationAdmin.ts
+ ┣ filter # Módulo de filtros da aplicação - ex: produtos
  ┣ models # Domínios da aplicação
  ┃ ┗ user.ts # Exemplo para usuário
  ┣ routes
