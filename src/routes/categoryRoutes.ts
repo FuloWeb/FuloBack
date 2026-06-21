@@ -1,8 +1,11 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, RequestHandler } from "express";
 import { CategoryController } from "../controllers/categoryController.js";
 
 const categoryRouter: Router = Router();
-const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler =
+  (fn: RequestHandler): RequestHandler =>
+  (req, res, next) =>
+    Promise.resolve(fn(req, res, next)).catch(next);
 
 categoryRouter.get("/", asyncHandler(CategoryController.list));
 categoryRouter.get("/:id", asyncHandler(CategoryController.getById));

@@ -24,7 +24,7 @@ userRouter.get("/", asyncHandler(async (req, res) => {
 ```
 
 ### Autenticada
-Requer token JWT válido. O middleware rejeita com `401` se ausente ou inválido.
+Requer session válido. O middleware rejeita com `401` se ausente ou inválido.
 
 ```ts
 userRouter.get("/:id", authMiddleware, asyncHandler(async (req, res) => {
