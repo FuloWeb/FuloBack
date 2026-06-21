@@ -1,9 +1,12 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, RequestHandler } from "express";
 import { OrderController } from "../controllers/orderController.js";
 import { requireAdmin } from "../middleware/authorizationAdmin.js";
 
 const orderRouter = Router();
-const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler =
+  (fn: RequestHandler): RequestHandler =>
+  (req, res, next) =>
+    Promise.resolve(fn(req, res, next)).catch(next);
 
 orderRouter.get("/", requireAdmin, asyncHandler(OrderController.list));
 orderRouter.get("/my-orders", asyncHandler(OrderController.myOrders));
