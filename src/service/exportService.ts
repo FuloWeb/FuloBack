@@ -1,5 +1,8 @@
 import PDFDocument from "pdfkit";
+import path from "path";
 import { Response } from "express";
+
+const header = path.join(process.cwd(), "public", "logo.png");
 
 export const PdfService = {
   generateMissingProductsPdf(res: Response, products: any[]) {
@@ -13,10 +16,17 @@ export const PdfService = {
     );
 
     doc.pipe(res);
+    doc.image(header, {
+      fit: [120, 120],
+      align: "center",
+    });
+
+    doc.font("Helvetica-Bold");
     doc.fontSize(18).text("RELATÓRIO DE PRODUTOS FALTANTES - Maria Fulô");
     doc.moveDown();
 
     products.forEach((product) => {
+      doc.font("Helvetica");
       doc.text(`${product.id} - ${product.name}`);
 
       doc.text(`Quantidade: ${product.quantity}`);
@@ -44,10 +54,21 @@ export const PdfService = {
     );
 
     doc.pipe(res);
-    doc.fontSize(18).text("RELATÓRIO DE COMPRAS POR CLIENTE - Maria Fulô");
+    doc.image(header, {
+      fit: [120, 120],
+      align: "center",
+    });
+
+    doc.moveDown(2);
+    doc.font("Helvetica-Bold");
+    doc.fontSize(18).text("RELATÓRIO DE COMPRAS POR CLIENTE - Maria Fulô", {
+      align: "center"
+    });
+
     doc.moveDown();
 
     data.forEach((row) => {
+      doc.font("Helvetica");
       doc.text(`${row.clientName} - R$ ${row.total.toFixed(2)}`);
     });
 
@@ -71,10 +92,16 @@ export const PdfService = {
     );
 
     doc.pipe(res);
+    doc.image(header, {
+      fit: [120, 120],
+      align: "center",
+    });
+    doc.font("Helvetica-Bold");
     doc.fontSize(18).text("RELATÓRIO DE RECEITA DIÁRIA - Maria Fulô");
     doc.moveDown();
 
     data.forEach((row) => {
+      doc.font("Helvetica");
       doc.text(`${row.date} - R$ ${row.total.toFixed(2)}`);
     });
 
