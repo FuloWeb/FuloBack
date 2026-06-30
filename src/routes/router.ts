@@ -4,6 +4,7 @@ import authRoutes from "./authRoutes.js"
 import categoryRoutes from "./categoryRoutes.js";
 import productRoutes from "./productsRoutes.js";
 import reportRoutes from "./reportsRoutes.js";
+import orderRouter from "./orderRoutes.js";
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.use("/auth", authRoutes);
 router.use("/category", categoryRoutes);
 router.use("/products", productRoutes);
 router.use("/reports", reportRoutes);
+router.use("/orders", orderRouter);
 
 export default router;

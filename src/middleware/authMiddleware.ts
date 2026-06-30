@@ -1,16 +1,14 @@
-import { Response, NextFunction } from "express";
-
+import { Request, Response, NextFunction } from "express";
 import { logger } from "../config/logger.js";
-import { AuthRequest } from "../types/authRequest.js";
 
 export const authMiddleware = (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     if (!req.session.user) {
-      logger.warn("POST /auth/login - Tentativa de acesso sem autenticação", {
+      logger.warn("Tentativa de acesso sem autenticação", {
         path: req.originalUrl,
         method: req.method,
       });
@@ -19,8 +17,6 @@ export const authMiddleware = (
         error: "Não autenticado.",
       });
     }
-
-    req.user = req.session.user;
 
     next();
   } catch (error) {
