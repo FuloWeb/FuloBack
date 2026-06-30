@@ -7,10 +7,6 @@ export interface SessionUser {
   role: Role;
 }
 
-export interface AuthRequest extends Request {
-  user?: SessionUser;
-}
-
 export type RegisterBody = {
   name: string;
   email: string;
