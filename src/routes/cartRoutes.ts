@@ -14,5 +14,6 @@ cartRouter.post("/items", asyncHandler(CartController.addItem));
 cartRouter.patch("/items", asyncHandler(CartController.updateItem));
 cartRouter.delete("/items/:productId", asyncHandler(CartController.removeItem));
 cartRouter.delete("/", asyncHandler(CartController.clear));
+cartRouter.post("/checkout", asyncHandler(CartController.checkout));
 
 export default cartRouter;

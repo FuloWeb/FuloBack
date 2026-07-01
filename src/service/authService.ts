@@ -52,7 +52,7 @@ export async function registrarUsuario(
 
     return res.status(201).json({
       success: true,
-      user: {
+      data: {
         id: novoUsuario.id,
         name: novoUsuario.name,
         email: novoUsuario.email,
@@ -143,7 +143,7 @@ export async function autenticarUsuario(
           res.status(200).json({
             success: true,
 
-            user: {
+            data: {
               id: usuario.id,
               name: usuario.name,
               email: usuario.email,

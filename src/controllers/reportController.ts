@@ -1,38 +1,87 @@
 import { Request, Response } from "express";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
 import { ProductModel } from "../models/products.js";
 import { OrderModel } from "../models/order.js";
 import { PdfService } from "../service/exportService.js";
+import { logger } from "../config/logger.js";
 
 const periodSchema = z.object({
-  start: z.string(),
-  end: z.string(),
+  start: z.string().refine((v) => !isNaN(Date.parse(v)), {
+    message: "Data inicial inválida",
+  }),
+  end: z.string().refine((v) => !isNaN(Date.parse(v)), {
+    message: "Data final inválida",
+  }),
+}).refine((d) => new Date(d.end) >= new Date(d.start), {
+  message: "Data final deve ser maior ou igual à data inicial",
+  path: ["end"],
 });
 
 export const ReportController = {
-  // @ Produtos fora do estoque
   async missingProducts(req: Request, res: Response) {
-    const products = await ProductModel.findOutOfStock();
+    try {
+      const products = await ProductModel.findOutOfStock();
+      PdfService.generateMissingProductsPdf(res, products);
+    } catch (error) {
+      logger.error("Erro ao gerar relatório de produtos faltantes", error);
 
-    PdfService.generateMissingProductsPdf(res, products);
+      if (!res.headersSent) {
+        return res.status(500).json({ error: "Erro ao gerar relatório." });
+      }
+    }
   },
 
-  // @ Total de compras por cliente
   async salesByClient(req: Request, res: Response) {
-    const { start, end } = periodSchema.parse(req.query);
+    try {
+      const { start, end } = periodSchema.parse(req.query);
 
-    const data = await OrderModel.salesByClient(new Date(start), new Date(end));
+      const startDate = new Date(start);
+      // Inclui o dia inteiro da data final
+      const endDate = new Date(end);
+      endDate.setHours(23, 59, 59, 999);
 
-    PdfService.generateSalesByClientPdf(res, data);
+      const data = await OrderModel.salesByClient(startDate, endDate);
+      PdfService.generateSalesByClientPdf(res, data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "Parâmetros inválidos.",
+          details: error.flatten(),
+        });
+      }
+
+      logger.error("Erro ao gerar relatório de vendas por cliente", error);
+
+      if (!res.headersSent) {
+        return res.status(500).json({ error: "Erro ao gerar relatório." });
+      }
+    }
   },
 
-  // @ Vendas por um período (por dia)
   async dailyRevenue(req: Request, res: Response) {
-    const { start, end } = periodSchema.parse(req.query);
+    try {
+      const { start, end } = periodSchema.parse(req.query);
 
-    const data = await OrderModel.dailyRevenue(new Date(start), new Date(end));
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      endDate.setHours(23, 59, 59, 999);
 
-    PdfService.generateDailyRevenuePdf(res, data);
+      const data = await OrderModel.dailyRevenue(startDate, endDate);
+      PdfService.generateDailyRevenuePdf(res, data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "Parâmetros inválidos.",
+          details: error.flatten(),
+        });
+      }
+
+      logger.error("Erro ao gerar relatório de receita diária", error);
+
+      if (!res.headersSent) {
+        return res.status(500).json({ error: "Erro ao gerar relatório." });
+      }
+    }
   },
 };

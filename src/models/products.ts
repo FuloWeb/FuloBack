@@ -32,22 +32,44 @@ export const ProductModel = {
   },
 
   async findAll() {
-    return prisma.product.findMany({
+    const products = await prisma.product.findMany({
       include: {
         photo: true,
         productCategory: true,
       },
     });
-  },
 
+    return products.map((product) => ({
+      ...product,
+      photo: product.photo
+        ? {
+            ...product.photo,
+            blob: `data:${product.photo.mimetype};base64,${Buffer.from(product.photo.blob).toString("base64")}`,
+          }
+        : null,
+    }));
+  },
+  
   async findById(id: number) {
-    return prisma.product.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id },
       include: {
         photo: true,
         productCategory: true,
       },
     });
+
+    if (!product) return null;
+
+    return {
+      ...product,
+      photo: product.photo
+        ? {
+            ...product.photo,
+            blob: `data:${product.photo.mimetype};base64,${Buffer.from(product.photo.blob).toString("base64")}`,
+          }
+        : null,
+    };
   },
 
   async findByName(name: string) {

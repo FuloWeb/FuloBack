@@ -12,6 +12,15 @@ export type CreateOrder = {
 
 export type UpdateOrder = Partial<CreateOrder>;
 
+// Status que representam pedidos válidos para relatório (excluí CANCELADO)
+const VALID_REPORT_STATUSES: OrderStatus[] = [
+  OrderStatus.AGUARDANDO_PAGAMENTO,
+  OrderStatus.PAGAMENTO_APROVADO,
+  OrderStatus.EM_PROCESSAMENTO,
+  OrderStatus.ENVIADO,
+  OrderStatus.ENTREGUE,
+];
+
 export const OrderModel = {
   async create(userId: number, data: CreateOrder) {
     return await prisma.order.create({
@@ -46,7 +55,6 @@ export const OrderModel = {
   async findById(id: number) {
     return prisma.order.findUnique({
       where: { id },
-
       include: {
         items: {
           include: {
@@ -60,10 +68,7 @@ export const OrderModel = {
 
   async findByUser(userId: number) {
     return prisma.order.findMany({
-      where: {
-        userId,
-      },
-
+      where: { userId },
       include: {
         items: {
           include: {
@@ -77,10 +82,7 @@ export const OrderModel = {
   async updateStatus(id: number, status: OrderStatus) {
     return prisma.order.update({
       where: { id },
-
-      data: {
-        status,
-      },
+      data: { status },
     });
   },
 
@@ -98,8 +100,11 @@ export const OrderModel = {
           gte: startDate,
           lte: endDate,
         },
+        // Ignora pedidos cancelados
+        status: {
+          in: VALID_REPORT_STATUSES,
+        },
       },
-
       include: {
         user: true,
         items: {
@@ -124,10 +129,9 @@ export const OrderModel = {
       totals.set(clientName, (totals.get(clientName) ?? 0) + orderTotal);
     }
 
-    return Array.from(totals.entries()).map(([clientName, total]) => ({
-      clientName,
-      total,
-    }));
+    return Array.from(totals.entries())
+      .map(([clientName, total]) => ({ clientName, total }))
+      .sort((a, b) => b.total - a.total); // ordena por maior total
   },
 
   async dailyRevenue(startDate: Date, endDate: Date) {
@@ -137,14 +141,20 @@ export const OrderModel = {
           gte: startDate,
           lte: endDate,
         },
+        // Ignora pedidos cancelados
+        status: {
+          in: VALID_REPORT_STATUSES,
+        },
       },
-
       include: {
         items: {
           include: {
             product: true,
           },
         },
+      },
+      orderBy: {
+        createdAt: "asc",
       },
     });
 

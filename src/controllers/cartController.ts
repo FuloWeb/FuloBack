@@ -162,4 +162,30 @@ export const CartController = {
       });
     }
   },
+
+  async checkout(req: Request, res: Response) {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({
+          error: "Usuário não autenticado.",
+        });
+      }
+
+      const order = await CartModel.checkout(req.session.user.id);
+
+      return res.status(200).json(order);
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).json({
+          error: error.message,
+        });
+      }
+
+      logger.error("Erro ao finalizar pedido.", error);
+
+      return res.status(500).json({
+        error: "Erro interno do servidor.",
+      });
+    }
+  },
 };
