@@ -1,33 +1,11 @@
 import { Request, Response } from "express";
 import { z } from "zod";
+import { logger } from "../config/logger.js";
 
 import { OrderModel } from "../models/order.js";
 import { AppError } from "../utils/appError.js";
-import { AuthRequest } from "../types/authRequest.js";
 
-const idSchema = z.object({
-  id: z.coerce.number().positive(),
-});
-
-const createOrderSchema = z.object({
-  items: z.array(
-    z.object({
-      productId: z.coerce.number().positive(),
-      quantity: z.coerce.number().positive(),
-    }),
-  ),
-});
-
-const updateStatusSchema = z.object({
-  status: z.enum([
-    "AGUARDANDO_PAGAMENTO",
-    "PAGAMENTO_APROVADO",
-    "EM_PROCESSAMENTO",
-    "ENVIADO",
-    "ENTREGUE",
-    "CANCELADO",
-  ]),
-});
+import { idSchema, createOrderSchema, updateStatusSchema } from "../validation/orderValidation.js";
 
 export const OrderController = {
   async list(req: Request, res: Response) {
@@ -52,8 +30,14 @@ export const OrderController = {
     });
   },
 
-  async myOrders(req: AuthRequest, res: Response) {
-    const orders = await OrderModel.findByUser(req.user!.id);
+  async myOrders(req: Request, res: Response) {
+    const user = req.session.user!;
+
+    if (!user) {
+      logger.error("GET /order/my-orders - User not found");
+    }
+
+    const orders = await OrderModel.findByUser(user.id);
 
     return res.json({
       data: orders,

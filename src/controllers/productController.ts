@@ -4,22 +4,7 @@ import { z } from "zod";
 import { ProductModel } from "../models/products.js";
 import { AppError } from "../utils/appError.js";
 import { logger } from "../config/logger.js";
-import { PdfService } from "../service/exportService.js";
-
-const idSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
-const createProductSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().optional(),
-  price: z.coerce.number().positive(),
-  quantity: z.coerce.number().nonnegative(),
-  color: z.string().min(1),
-  categoryId: z.coerce.number().positive(),
-});
-
-const updateProductSchema = createProductSchema.partial();
+import { idSchema, createProductSchema, updateProductSchema } from "../validation/productValidation.js";
 
 export const ProductController = {
   async list(req: Request, res: Response) {
